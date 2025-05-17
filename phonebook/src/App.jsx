@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
-import PersonForm from './components.jsx/PersonForm'
-import Filter from './components.jsx/Filter'
-import Persons from './components.jsx/Persons'
+import PersonForm from './components/PersonForm'
+import Filter from './components/Filter'
+import Persons from './components/Persons'
 import personServices from './services/contacts'
+import Notification from './components/Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [search, setSearch] = useState('')
+  const [notification, setNotification] = useState(null)
+  const [messageColor, setMessageColor] = useState('green')
+
+  const msgStyle = {color: messageColor};
 
   useEffect(() => {
     personServices
@@ -38,6 +43,18 @@ const App = () => {
           .updatePerson(updatedPerson)
           .then(changedPerson => {
             setPersons(persons.map(person => updatedPerson.id === person.id ? changedPerson : person))
+            setMessageColor('green');
+            setNotification(`Updated ${changedPerson.name}'s number`)
+            setTimeout(() => {
+              setNotification(null)
+            }, 2000)
+          })
+          .catch(error => {
+            setMessageColor('red')
+            setNotification(`Information from ${personObject.name} has been removed from the server`)
+            setTimeout(() => {
+              setNotification(null)
+            }, 2000)
           })
       }
     } 
@@ -46,8 +63,20 @@ const App = () => {
         .createContact(personObject)
         .then(newPerson => {
           setPersons(persons.concat(newPerson))
+          setMessageColor('green');
+          setNotification(`Added ${newPerson.name}`)
           setNewName('');
           setNewNumber('');
+          setTimeout(() => {
+            setNotification(null)
+          }, 2000)
+      })
+      .catch(error => {
+        setMessageColor('red')
+        setNotification(`Information from ${personObject.name} has been removed from the server`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 2000)
       })
     }
   }
@@ -77,6 +106,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification} style={msgStyle}/>
       <Filter handleSearch={handleSearch}/>
       <h2>Add new contact</h2>
       <PersonForm 
